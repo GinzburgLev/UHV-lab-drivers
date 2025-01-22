@@ -248,13 +248,23 @@ class Stepper_Motor_Controller_Tic36_V4_Usb(Device):
         current_pos_num = self.read_current_position_read_function()
         current_pos_num_new = current_pos_num
         position_unchanged_counter = 0
-        if value == current_pos_num:
+        value_int = int(value)
+        error_str = self.read_errors_string_read_function()
+        error_list = error_str.split(", ")
+        try:
+            error_list.remove("Command timeout")
+            error_list.remove("Safe start violation")
+        except:
+            print("Can not read motor status")
+        if error_list:
+            print("Check motor power or errors")
+        if value_int == current_pos_num:
             return
-        elif value > current_pos_num:
-            while (value > current_pos_num) and (
+        elif value_int > current_pos_num:
+            while (value_int > current_pos_num) and (
                 position_unchanged_counter < self.max_position_unchanged_counter
             ):
-                self.ticcmd("--exit-safe-start", "--position", str(value))
+                self.ticcmd("--exit-safe-start", "--position", str(value_int))
                 time.sleep(self.time_before_repeat)
                 current_pos_num_new = self.read_current_position_read_function()
                 if current_pos_num_new == current_pos_num:
@@ -263,10 +273,10 @@ class Stepper_Motor_Controller_Tic36_V4_Usb(Device):
                     position_unchanged_counter = 0
                 current_pos_num = current_pos_num_new
         else:
-            while (value < current_pos_num) and (
+            while (value_int < current_pos_num) and (
                 position_unchanged_counter < self.max_position_unchanged_counter
             ):
-                self.ticcmd("--exit-safe-start", "--position", str(value))
+                self.ticcmd("--exit-safe-start", "--position", str(value_int))
                 time.sleep(self.time_before_repeat)
                 current_pos_num_new = self.read_current_position_read_function()
                 if current_pos_num_new == current_pos_num:
