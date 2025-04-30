@@ -9,9 +9,12 @@ from nomad_camels.bluesky_handling.visa_signal import (
     VISA_Signal_RO,
     VISA_Device,
 )
+import time
 
 
 class Leybold_Combivac_It23(VISA_Device):
+    number_of_repeats = 5
+    time_delay = 0.1
     read_pressure_S1 = Cpt(
         Custom_Function_SignalRO,
         name="read_pressure_S1",
@@ -67,14 +70,19 @@ class Leybold_Combivac_It23(VISA_Device):
         self.read_pressure_ITR.read_function = lambda: self.read_pressure_func(3)
 
     def read_pressure_func(self, channel_num):
-        reply = self.visa_instrument.query("MES " + str(channel_num))
-        message = reply.split(":")[2]
         data = float("NaN")
+        for i in range(self.number_of_repeats):
+            reply = self.visa_instrument.query("MES " + str(channel_num))
+            message = reply.split(":")[2]
+            if message == "NO SENSOR":
+                print("Attempting to connect to the sensor, iteration " + str(i) + " failed.")
+            else:
+                try:
+                    data = float(message.replace(" ", ""))
+                except:
+                    print("ERROR: " + reply)
+                break
+            time.sleep(self.time_delay)
         if message == "NO SENSOR":
             print("no pressure sensor connected")
-        else:
-            try:
-                data = float(message.replace(" ", ""))
-            except:
-                print("ERROR: " + reply)
         return data

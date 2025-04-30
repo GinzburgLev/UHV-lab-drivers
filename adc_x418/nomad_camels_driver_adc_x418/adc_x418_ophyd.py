@@ -305,7 +305,6 @@ class Adc_X418(Device):
     def read_channel_n_read_function(self, channel_num):
         ## request state.json file from ADC, then parse it to extract measured value at channel number 'channel_num'
         message = "GET /state.json HTTP/1.1\r\n"
-        print("ADC voltage requested")
         if self.use_admin_credentials or self.user_password:  ## authorisation if needed
             message = message + "Authorization: Basic " + self.encoded_auth_str + "\r\n"
         message = message + "\r\n"
@@ -322,15 +321,6 @@ class Adc_X418(Device):
             if err == errno.EWOULDBLOCK:
                 print("ewouldblock")
         time.sleep(self.sleep_time)
-        # response_chunks = []
-        # while True:
-        # chunk = self.sock.recv(self.byte_length, 0x40)
-        # time.sleep(self.sleep_time)
-        # if(not chunk) or (not isinstance(chunk, str)):
-        # break
-        # print(["qwe   " + chunk])
-        # response_chunks.append(chunk)
-        # response = b"".join(response_chunks)
         response_readable = response.decode()
         response_match = re.search(
             r"{.*?}", response_readable, re.DOTALL
@@ -338,7 +328,6 @@ class Adc_X418(Device):
         if response_match:
             response_dict = json.loads(response_match.group(0))
             reply = response_dict["analogInput" + str(channel_num)]
-            print(f"ADC response: {reply}")
             return float(reply)
         else:
             print(f"no json string received from X418")

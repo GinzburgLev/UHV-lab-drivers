@@ -55,7 +55,6 @@ class Thermocouple_Calibration_Script(Device):
         device = device_handling.running_devices[self.Voltmeter_name]
         # output = device.read_current_output_actual.get()
         func_name = getattr(device, self.Voltmeter_channel_name)
-        print("temperature requested")
         V_meas_no_offset = func_name.get()
         if type(V_meas_no_offset) == float:
             V_meas = V_meas_no_offset - self.V_offset
@@ -75,5 +74,4 @@ class Thermocouple_Calibration_Script(Device):
         V_array = np.array(data.get("V, V", []))
         index = (np.abs(V_array - V_meas)).argmin()
         filehandle.close()
-        print(f"output of script: {t_array[index] + self.Room_T}")
         return t_array[index] + self.Room_T
